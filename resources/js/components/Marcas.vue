@@ -39,7 +39,7 @@
         <modal-component id="modalMarca" titulo="Adicionar Marca">
             <template v-slot:alertas>
                 <alert-component tipo="success" :detalhes="transacaoDetalhes" titulo="Cadastro realizado com sucesso!" v-if="transacaoStatus == 'adicionado'"></alert-component>
-                <alert-component tipo="danger" :detalhes="transacaoDetalhes" titulo="Erro ao cadastrar!" v-if="transacaoStatus == 'erro'"></alert-component>
+                <alert-component tipo="danger" :detalhes="transacaoDetalhes" titulo="Erro ao cadastrar! " v-if="transacaoStatus == 'erro'"></alert-component>
             </template>
             <template v-slot:conteudo>
                 <div class="form-group">
@@ -58,7 +58,6 @@
                 <button type="button" class="btn btn-primary" @click="salvar()">Salvar</button>
             </template>
         </modal-component>
-
     </div>
 </template>
 
@@ -81,10 +80,29 @@
                 nomeMarca: '',
                 arquivoImagem: [],
                 transacaoStatus: '',
-                transacaoDetalhes: []
+                transacaoDetalhes: {},
+                marcas: [],
             }
         },
         methods: {
+            carregarLista() {
+                let config = {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': this.token,
+                    }
+                }
+
+
+                axios.get(this.urlBase, config)
+                .then(response => {
+                    this.marcas = response.data;
+                    console.log(this.marcas);
+                })
+                .catch(errors => {
+                    console.log(errors);
+                })
+            },
             carregarImagem(e) {
                 this.arquivoImagem = e.target.files;
             },
@@ -99,18 +117,26 @@
                         'Authorization': this.token,
                     }
                 }
-                axios.post(this.urlBase, formData, config)
+                axios.post(this.urlBase, formData, config) // o axios precisa da URL, Conteudo que será levado para o backend e por ultimo, as configuraçoes da requisição (method, accept e authorization)
                     .then(response => {
                         this.transacaoStatus = 'adicionado';
-                        this.transacaoDetalhes = response;
+                        this.transacaoDetalhes = {
+                            mensagem: 'Marca ' + response.data.nome + ' adicionada aos registros.'
+                        }
                         //console.log(response);
                     })
                     .catch(errors => {
                         this.transacaoStatus = 'erro';
-                        this.transacaoDetalhes = errors.response;
+                        this.transacaoDetalhes = {
+                            mensagem: errors.response.data.message,
+                            dados: errors.response.data.errors
+                        };
                         //console.log(errors.response.data.message);
                     })
             }
+        },
+        mounted() {
+            this.carregarLista()
         }
     }
 </script>

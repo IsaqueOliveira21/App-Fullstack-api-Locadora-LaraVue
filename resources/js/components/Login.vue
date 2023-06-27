@@ -59,7 +59,7 @@
 
 <script>
     export default {
-        props: ['csrf_token'], // Semelhante ao
+        props: ['csrf_token'], // Semelhante ao data
         data() {
             return {
                 email: '',
