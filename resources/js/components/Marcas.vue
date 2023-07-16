@@ -8,25 +8,25 @@
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <input-container-component id="inputId" titulo="ID" id-help="idHelp" texto-ajuda="Informe o ID da marca (opcional).">
-                                    <input type="number" class="form-control" id="inputId" aria-describedby="idHelp" placeholder="ID">
+                                    <input type="number" class="form-control" id="inputId" aria-describedby="idHelp" placeholder="ID" v-model="busca.id">
                                 </input-container-component>
                             </div>
                             <div class="col-6 mb-3">
                                 <input-container-component id="inputNome" titulo="Nome da Marca" id-help="nomeHelp" texto-ajuda="Informe o nome da marca (opcional).">
-                                    <input type="text" class="form-control" id="inputNome" aria-describedby="nomeHelp" placeholder="Nome da Marca">
+                                    <input type="text" class="form-control" id="inputNome" aria-describedby="nomeHelp" placeholder="Nome da Marca" v-model="busca.nome">
                                 </input-container-component>
                             </div>
                         </div>
                     </template>
                     <template v-slot:rodape>
-                        <button type="submit" class="btn btn-primary btn-sm float-right">Pesquisar</button>
+                        <button type="submit" class="btn btn-primary btn-sm float-right" @click="pesquisar()">Pesquisar</button>
                     </template>
                 </card-component>
 
                 <card-component titulo="Relação de Marcas">
                     <template v-slot:conteudo>
                         <table-component
-                         :dados="marcas.data" 
+                         :dados="marcas.data"
                          :titulos="{
                             id: {titulo: 'ID', tipo: 'texto'},
                             nome: {titulo: 'Nome', tipo: 'texto'},
@@ -95,14 +95,35 @@
         data() {
             return {
                 urlBase: 'http://127.0.0.1:8000/api/v1/marca',
+                urlPaginacao: '',
+                urlFiltro: '',
                 nomeMarca: '',
                 arquivoImagem: [],
                 transacaoStatus: '',
                 transacaoDetalhes: {},
                 marcas: { data: [] },
+                busca: { id: '', nome: '' },
             }
         },
         methods: {
+            pesquisar() {
+                let filtro = '';
+                for(let chave in this.busca) {
+                    if(this.busca[chave]) {
+                        if(filtro != '') {
+                            filtro += ';';
+                        }
+                        filtro += chave + ':like:' + this.busca[chave];
+                    }
+                }
+                if(filtro != '') {
+                    this.urlPaginacao = 'page=1'
+                    this.urlFiltro = '&filtro='+filtro+'%';
+                } else {
+                    this.urlFiltro = '';
+                }
+                this.carregarLista();
+            },
             carregarLista() {
                 let config = {
                     headers: {
@@ -110,7 +131,8 @@
                         'Authorization': this.token,
                     }
                 }
-                axios.get(this.urlBase, config)
+                let url = this.urlBase + '?' + this.urlPaginacao + this.urlFiltro;
+                axios.get(url, config)
                 .then(response => {
                     this.marcas = response.data;
                     //console.log(response.data.data);
@@ -121,7 +143,8 @@
             },
             paginacao(l) {
                 if(l.url) {
-                    this.urlBase = l.url;
+                    //this.urlBase = l.url;
+                    this.urlPaginacao = l.url.split('?')[1];
                     this.carregarLista();
                 }
             },
