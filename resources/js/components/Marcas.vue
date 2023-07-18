@@ -27,9 +27,9 @@
                     <template v-slot:conteudo>
                         <table-component
                          :dados="marcas.data"
-                         :visualizar="true"
+                         :visualizar="{ visivel: true, dataToggle: 'modal', dataTarget:'#modalMarcaVisualizar' }"
                          :atualizar="true"
-                         :remover="true"
+                         :remover="{ visivel: true, dataToggle: 'modal', dataTarget:'#modalMarcaRemover' }"
                          :titulos="{
                             id: {titulo: 'ID', tipo: 'texto'},
                             nome: {titulo: 'Nome', tipo: 'texto'},
@@ -57,6 +57,7 @@
             </div>
         </div>
 
+        <!-- Inicio modal cadastro marcas -->
         <modal-component id="modalMarca" titulo="Adicionar Marca">
             <template v-slot:alertas>
                 <alert-component tipo="success" :detalhes="transacaoDetalhes" titulo="Cadastro realizado com sucesso!" v-if="transacaoStatus == 'adicionado'"></alert-component>
@@ -79,6 +80,53 @@
                 <button type="button" class="btn btn-primary" @click="salvar()">Salvar</button>
             </template>
         </modal-component>
+        <!-- Final modal cadastro marcas -->
+
+        <!-- Inicio modal visualizar marcas -->
+        <modal-component id="modalMarcaVisualizar" titulo="Visualizar Marca">
+            <template v-slot:alertas>
+            </template>
+            <template v-slot:conteudo>
+                <input-container-component titulo="ID">
+                    <input type="text" class="form-control" :value="$store.state.item.id" disabled>
+                </input-container-component>
+                <input-container-component titulo="Nome da Marca">
+                    <input type="text" class="form-control" :value="$store.state.item.nome" disabled>
+                </input-container-component>
+                <input-container-component titulo="Imagem">
+                    <img :src="'storage/'+$store.state.item.imagem" alt="" v-if="$store.state.item.imagem">
+                </input-container-component>
+                <input-container-component titulo="Data de criação">
+                    <input type="text" class="form-control" :value="$store.state.item.created_at" disabled>
+                </input-container-component>
+            </template>
+            <template v-slot:rodape>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </template>
+        </modal-component>
+        <!-- Final modal visualizar marcas -->
+
+        <!-- Inicio modal remover marcas -->
+        <modal-component id="modalMarcaRemover" titulo="Remover Marca">
+            <template v-slot:alertas>
+                <alert-component tipo="success" titulo="Transação realizada com sucesso" :detalhes="$store.state.transacao" v-if="$store.state.transacao.status == 'sucesso'"></alert-component>
+                <alert-component tipo="danger" titulo="Erro na transação" :detalhes="$store.state.transacao" v-if="$store.state.transacao.status == 'error'"></alert-component>
+            </template>
+            <template v-slot:conteudo v-if="$store.state.transacao.status != 'sucesso'">
+                <input-container-component titulo="ID">
+                    <input type="text" class="form-control" :value="$store.state.item.id" disabled>
+                </input-container-component>
+                <input-container-component titulo="Nome da Marca">
+                    <input type="text" class="form-control" :value="$store.state.item.nome" disabled>
+                </input-container-component>
+            </template>
+            <template v-slot:rodape>
+                <button type="button" class="btn btn-danger" @click="remover()" v-if="$store.state.transacao.status != 'sucesso'">Remover</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </template>
+        </modal-component>
+        <!-- Final modal remover marcas -->
+
     </div>
 </template>
 
@@ -126,6 +174,34 @@
                     this.urlFiltro = '';
                 }
                 this.carregarLista();
+            },
+            remover() {
+                let confirmacao = confirm("Deseja realmente remover o registro?");
+                if(!confirmacao) {
+                    return false;
+                }
+
+                let url = this.urlBase + '/' + this.$store.state.item.id;
+                let formData = new FormData();
+                let config = {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': this.token
+                    }
+                };
+                formData.append('_method', 'delete');
+
+                axios.post(url, formData, config)
+                    .then(response => {
+                        this.$store.state.transacao.status = 'sucesso';
+                        this.$store.state.transacao.mensagem = response.data.msg;
+                        this.carregarLista();
+                    })
+                    .catch(errors => {
+                        console.log(errors.response);
+                        this.$store.state.transacao.status = 'error';
+                        this.$store.state.transacao.mensagem = errors.response.data.erro;
+                    })
             },
             carregarLista() {
                 let config = {

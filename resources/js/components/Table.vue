@@ -1,10 +1,11 @@
 <template>
     <div>
+        {{ $store.state.teste }}
         <table class="table table-hover">
             <thead>
                 <tr>
                     <th scope="col" v-for="t, key in titulos" :key="key">{{ t.titulo}}</th>
-                    <th v-if="atualizar || remover || visualizar"> Ações </th>
+                    <th scope="col" v-if="visualizar.visivel || remover.visivel || visualizar"> Ações </th>
                 </tr>
             </thead>
             <tbody>
@@ -16,10 +17,12 @@
                             <img :src="'/storage/'+valor" width="100px" height="100px">
                         </span>
                     </td>
-                    <td>
-                        <button v-if="visualizar" class="btn btn-outline-primary btn-sm">Visualizar</button>
-                        <button v-if="atualizar" class="btn btn-outline-success btn-sm">Atualizar</button>
-                        <button v-if="remover" class="btn btn-outline-danger btn-sm">Remover</button>
+                    <td v-if="visualizar.visivel || remover.visivel || visualizar">
+                        <div class="btn-group">
+                            <button v-if="visualizar.visivel" class="btn btn-outline-primary btn-sm" :data-toggle="visualizar.dataToggle" :data-target="visualizar.dataTarget" @click="setStore(obj)">Visualizar</button>
+                            <button v-if="atualizar" class="btn btn-outline-success btn-sm">Atualizar</button>
+                            <button v-if="remover.visivel" class="btn btn-outline-danger btn-sm" :data-toggle="remover.dataToggle" :data-target="remover.dataTarget" @click="setStore(obj)">Remover</button>
+                        </div>
                     </td>
                 </tr>
             </tbody>
@@ -30,6 +33,13 @@
 <script>
     export default {
         props: ['titulos', 'dados', 'atualizar', 'visualizar', 'remover'],
+        methods: {
+            setStore(obj) {
+                this.$store.state.transacao.status = '';
+                this.$store.state.transacao.mensagem = '';
+                this.$store.state.item = obj;
+            }
+        },
         computed: {
             dadosFiltrados() {
                 let campos = Object.keys(this.titulos);
