@@ -18,7 +18,7 @@ const store = new Vuex.Store({
     state: {
         teste: 'Teste de recuperaçao de valor da store do Vuex',
         item: {},
-        transacao: { status: '', mensagem: '' }
+        transacao: { status: '', mensagem: '', dados: '' },
     }
 });
 
@@ -50,6 +50,23 @@ Vue.component('pagination-component', require('./components/Pagination.vue').def
  * the page. Then, you may begin adding components to this application
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
+
+Vue.filter('formataDataTempoGlobal', function (data) {
+    if(!data) {
+        return '';
+    }
+    data = data.split('T');
+    let dataDia = data[0];
+    let dataHora = data[1];
+
+    dataDia = dataDia.split('-');
+    dataDia = dataDia[2] + '/' + dataDia[1] + '/' + dataDia[0];
+
+    dataHora = dataHora.split('.');
+    dataHora = dataHora[0];
+
+    return dataDia + ' ' + dataHora;
+});
 
 const app = new Vue({
     el: '#app',
