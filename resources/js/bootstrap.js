@@ -39,3 +39,52 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 //     cluster: process.env.MIX_PUSHER_APP_CLUSTER,
 //     forceTLS: true
 // });
+
+// Interceptar os requests da aplicação
+axios.interceptors.request.use(
+    config => {
+        // Definindo os parametros para todas as requisiçoes
+
+        // Recuperando o token de autorizaçao dos cookies
+        let token = document.cookie.split(";").find(indice => {
+            return indice.includes('token=');
+        });
+        token = token.split("=")[1];
+        token = 'Bearer ' + token;
+
+
+        config.headers['Accept'] = 'application/json';// Outra forma de acessar os headers
+        config.headers.Authorization = token;
+
+        console.log('Intercepted request before processing', config);
+        return config
+    },
+    error => {
+        console.log(error);
+        return Promise.reject(error);
+    }
+);
+
+// Interceptar os responses da aplicação
+
+axios.interceptors.response.use(
+    response => {
+        console.log('Intercepted response before processing', response);
+        return response
+    },
+    error => {
+        console.log(error.response);
+
+        if (error.response.status == 401 && error.response.data.message == "Toke has expired") {
+            console.log('Realizando uma nova requisição para a rota refresh');
+            axios.post('http://localhost:8000/api/refresh')
+                .then(response => {
+                    console.log('Refresh realizado com sucesso: ', response);
+                    document.cookie = 'token=' + response.data.token;
+                    window.location.reload();
+                });
+        }
+
+        return Promise.reject(error);
+    }
+);

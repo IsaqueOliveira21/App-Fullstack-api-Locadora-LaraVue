@@ -157,6 +157,7 @@
 
 <script>
     export default {
+        /* MOVIDO PARA O BOOTSTRAP.JS PARA O AXIOS INTERCEPTOR
         computed: {
             token() {
                 let token = document.cookie.split(";").find(indice => {
@@ -168,6 +169,7 @@
                 return token;
             }
         },
+        */
         data() {
             return {
                 urlBase: 'http://127.0.0.1:8000/api/v1/marca',
@@ -210,8 +212,8 @@
                 let formData = new FormData();
                 let config = {
                     headers: {
-                        'Accept': 'application/json',
-                        'Authorization': this.token
+                        //'Accept': 'application/json',
+                        //'Authorization': this.token
                     }
                 };
                 formData.append('_method', 'delete');
@@ -231,8 +233,8 @@
             carregarLista() {
                 let config = {
                     headers: {
-                        'Accept': 'application/json',
-                        'Authorization': this.token,
+                        //'Accept': 'application/json',
+                        //'Authorization': this.token,
                     }
                 }
                 let url = this.urlBase + '?' + this.urlPaginacao + this.urlFiltro;
@@ -262,8 +264,8 @@
                 let config = {
                     headers: {
                         'Content-Type': 'multipart/form-data',
-                        'Accept': 'application/json',
-                        'Authorization': this.token,
+                        //'Accept': 'application/json',
+                        //'Authorization': this.token,
                     }
                 }
                 axios.post(this.urlBase, formData, config) // o axios precisa da URL, Conteudo que será levado para o backend e por ultimo, as configuraçoes da requisição (method, accept e authorization)
@@ -295,8 +297,8 @@
                 let config = {
                     headers: {
                         'Content-Type': 'multipart/form-data',
-                        'Accept': 'application/json',
-                        'Authorization': this.token
+                        //'Accept': 'application/json', <--- Foram movidos para bootstrap.js no axios intercepetor
+                        //'Authorization': this.token <---
                     }
                 }
                 axios.post(url, formData, config)
